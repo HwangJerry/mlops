@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: minio-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  hostPath:
+    path: /Users/jerryhwang/minio/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+        - name: minio
+          image: quay.io/minio/minio
+          args:
+            - server
+            - --console-address
+            - ":43529"
+            - /data
+          env:
+            - name: MINIO_ROOT_USER
+              value: console
+            - name: MINIO_ROOT_PASSWORD
+              value: console123
+          ports:
+            - containerPort: 9000
+            - containerPort: 43529
+          volumeMounts:
+            - name: minio-storage
+              mountPath: /data
+      volumes:
+        - name: minio-storage
+          persistentVolumeClaim:
+            claimName: minio-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+spec:
+  selector:
+    app: minio
+  ports:
+    - name: minio-api
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+      nodePort: 30090
+    - name: minio-console
+      protocol: TCP
+      port: 43529
+      targetPort: 43529
+      nodePort: 30091
+  type: NodePort
