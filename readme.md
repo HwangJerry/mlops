@@ -6,8 +6,8 @@
 3. `poetry env use $(pyenv which python)` # poetry 가상환경 사용
 4. `poetry add fastapi uvicorn torch` # install 말고 add로 해야 pyproject.toml 자동 관리됨
 
-# 1. 로컬 FastAPI 서버 구동
-poetry run uvicorn app.main:app --reload # 이렇게 하면 fastAPI 로컬 서버 구동 완료
+# 1. FastAPI를 활용한 ML 서버 구독
+`poetry run uvicorn app.main:app --reload` # fastAPI 로컬 서버 구동 완료
 
 # 2. Dockerize
 1. backend.Dockerfile을 root 경로에 작성
@@ -16,3 +16,4 @@ poetry run uvicorn app.main:app --reload # 이렇게 하면 fastAPI 로컬 서�
 위 과정 거치고 http://localhost:8080/docs 접속해서 API Test 수행
 
 # 3. MinIO; Model Repository 구축
+1. 
