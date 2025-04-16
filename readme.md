@@ -11,9 +11,12 @@
 
 # 2. Dockerize
 1. backend.Dockerfile을 root 경로에 작성
-2. `docker build -t mlops:0.0.1 -f backend.Dockerfile .` # Dockerfile이 있는 경로에서 수행 (build context를 .로 선언했으므로)
-3. `docker run -d -p 8080:80 --name mlops-backend mlops:0.0.1`
-위 과정 거치고 http://localhost:8080/docs 접속해서 API Test 수행
+2. `docker build -t mlops-app:latest -f backend.Dockerfile .` # Dockerfile이 있는 경로에서 수행 (build context를 .로 선언했으므로)
+3. `docker run -d -p 8000:8000 --name mlops-backend mlops-app:latest`
+위 과정 거치고 http://localhost:8000/docs 접속해서 API Test 수행
 
 # 3. MinIO; Model Repository 구축
-1. 
+1. `kubectl apply -f minio.yaml` # 로컬에 model repository 구축
+
+# 4. Local Docker registry 구축
+1. `kubectl apply -f docker-registry.yaml` # 로컬에 docker registry 구축
