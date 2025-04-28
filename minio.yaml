@@ -9,7 +9,8 @@ spec:
     - ReadWriteOnce
   storageClassName: local-storage
   hostPath:
-    path: /Users/jerryhwang/minio/data
+    # path: /Users/jerryhwang/minio/data # FOR MAC
+    path: /run/desktop/mnt/host/c/Users/ghkdw/mnt/minio # FOR WINDOWS
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
