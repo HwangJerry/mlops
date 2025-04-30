@@ -82,3 +82,6 @@ Thumbs.db
 *.psd6
 *.ps1xml
 *.psd1xml
+
+# htpasswd
+htpasswd
