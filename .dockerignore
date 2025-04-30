@@ -1,8 +1,61 @@
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.db
-*.sqlite3
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Development
+.git/
+.gitignore
 .env
+.venv/
+venv/
+ENV/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ML and Data
 models/
+data/
+datasets/
+*.h5
+*.pkl
+*.model
+*.joblib
+*.pt
+*.pth
+*.onnx
+
+# Certificates and Keys
+certs/
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.priv
+
+# Logs and Cache
+logs/
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Helm & K8s
+chart/
+*.yaml
+!app.yaml
+!backend.Dockerfile
