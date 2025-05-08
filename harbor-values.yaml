@@ -1,0 +1,79 @@
+expose:
+  type: ingress
+  tls:
+    enabled: true
+    secretName: harbor-tls
+  ingress:
+    hosts:
+      core: harbor.local
+    annotations:
+      kubernetes.io/ingress.class: traefik
+    className: traefik
+
+externalURL: https://harbor.local
+
+# 볼륨 권한 문제를 해결하기 위한 설정
+persistence:
+  enabled: true
+  resourcePolicy: "keep"
+  persistentVolumeClaim:
+    registry:
+      storageClass: "local-storage"
+      size: 5Gi
+    chartmuseum:
+      storageClass: "local-storage"
+      size: 5Gi
+    jobservice:
+      storageClass: "local-storage"
+      size: 1Gi
+    database:
+      storageClass: "local-storage"
+      size: 1Gi
+    redis:
+      storageClass: "local-storage"
+      size: 1Gi
+    trivy:
+      storageClass: "local-storage"
+      size: 5Gi
+
+# 권한 문제 해결을 위한 securityContext 설정
+database:
+  # 기본 관리자 비밀번호 설정
+  password: "db123456"
+  maxIdleConns: 100
+  maxOpenConns: 900
+  # 데이터베이스 권한 문제 해결
+  podSecurityContext:
+    runAsUser: 999
+    fsGroup: 999
+    runAsNonRoot: true
+
+jobservice:
+  podSecurityContext:
+    runAsUser: 10000
+    fsGroup: 10000
+
+registry:
+  podSecurityContext:
+    runAsUser: 10000
+    fsGroup: 10000
+
+core:
+  podSecurityContext:
+    runAsUser: 10000
+    fsGroup: 10000
+
+trivy:
+  gitHubToken: ""
+  podSecurityContext:
+    runAsUser: 10000
+    fsGroup: 10000
+
+# Harbor의 기본 관리자 비밀번호 설정
+harborAdminPassword: "Harbor12345"
+
+# 외부 레지스트리 프록시 사용 여부
+proxy:
+  httpProxy:
+  httpsProxy:
+  noProxy: 127.0.0.1,localhost,.local 
