@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fastapi-app
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -13,15 +14,34 @@ spec:
       labels:
         app: fastapi-app
     spec:
+      initContainers:
+        - name: wait-for-minio
+          image: busybox
+          command: ['sh', '-c', 'until nc -z minio-service 9000; do echo waiting for minio; sleep 2; done;']
       containers:
         - name: fastapi
-          image: localhost:30010/ghkdwp018/mlops-app:latest
-          imagePullPolicy: Always # Development
+          image: localhost:30445/ghkdwp018/mlops-app:latest
+          imagePullPolicy: IfNotPresent # Development
+          env:
+            - name: MINIO_HOST
+              value: "minio-service"
+            - name: MINIO_PORT
+              value: "9000"
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: root-user
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: root-password
           ports:
             - containerPort: 8000
           volumeMounts:
             - name: model-dir
-              mountPath: /code/models
+              mountPath: /mlops/models
       volumes:
         - name: model-dir
           emptyDir: {}
@@ -33,11 +53,36 @@ kind: Service
 metadata:
   name: fastapi-service
 spec:
+  type: ClusterIP
   selector:
     app: fastapi-app
   ports:
     - protocol: TCP
       port: 8000
       targetPort: 8000
-      nodePort: 30080
-  type: NodePort
+
+---
+# fastapi-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi-ingress
+  namespace: default
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: fastapi.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fastapi-service
+                port:
+                  number: 8000
+  tls:
+    - hosts:
+        - fastapi.local
+      secretName: fastapi-tls
+
