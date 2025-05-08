@@ -17,3 +17,7 @@ COPY pyproject.toml requirements.lock ./
 # rye를 사용하여 의존성 설치
 ENV PATH="/root/.rye/shims:${PATH}"
 RUN rye sync
+
+# 가상환경 경로를 환경변수로 설정
+ENV VIRTUAL_ENV=/mlops/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
