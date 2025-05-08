@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-registry-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /mnt/data/harbor/registry
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-chartmuseum-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /mnt/data/harbor/chartmuseum
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-jobservice-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /mnt/data/harbor/jobservice
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-database-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /mnt/data/harbor/database
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-redis-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /mnt/data/harbor/redis
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-trivy-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /mnt/data/harbor/trivy
+    type: DirectoryOrCreate 
