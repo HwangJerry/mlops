@@ -7,27 +7,38 @@ spec:
     storage: 10Gi
   accessModes:
     - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   hostPath:
-    # path: /Users/jerryhwang/minio/data # FOR MAC
-    path: /run/desktop/mnt/host/c/Users/ghkdw/mnt/minio # FOR WINDOWS
+    path: /mnt/data/minio
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: minio-pvc
+  namespace: default
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-storage
   resources:
     requests:
       storage: 10Gi
+  storageClassName: local-storage
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-secret
+  namespace: default
+stringData:
+  root-user: console
+  root-password: console123
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -38,46 +49,118 @@ spec:
       labels:
         app: minio
     spec:
-      containers:
-        - name: minio
-          image: quay.io/minio/minio
-          args:
-            - server
-            - --console-address
-            - ":43529"
-            - /data
-          env:
-            - name: MINIO_ROOT_USER
-              value: console
-            - name: MINIO_ROOT_PASSWORD
-              value: console123
-          ports:
-            - containerPort: 9000
-            - containerPort: 43529
-          volumeMounts:
-            - name: minio-storage
-              mountPath: /data
-      volumes:
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+      - name: volume-permissions
+        image: busybox
+        command: ["sh", "-c", "chown -R 1000:1000 /data && chmod -R 750 /data"]
+        volumeMounts:
         - name: minio-storage
-          persistentVolumeClaim:
-            claimName: minio-pvc
+          mountPath: /data
+      containers:
+      - name: minio
+        image: quay.io/minio/minio
+        imagePullPolicy: Always
+        args:
+          - server
+          - --console-address
+          - ":43529"
+          - /data
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: root-user
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: root-password
+        ports:
+        - containerPort: 9000
+          name: minio-api
+        - containerPort: 43529
+          name: minio-console
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: minio-api
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /minio/health/ready
+            port: minio-api
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: minio-storage
+          mountPath: /data
+      volumes:
+      - name: minio-storage
+        persistentVolumeClaim:
+          claimName: minio-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: minio-service
+  namespace: default
 spec:
+  type: ClusterIP
   selector:
     app: minio
   ports:
     - name: minio-api
-      protocol: TCP
       port: 9000
       targetPort: 9000
-      nodePort: 30090
     - name: minio-console
-      protocol: TCP
       port: 43529
       targetPort: 43529
-      nodePort: 30091
-  type: NodePort
+
+---
+# minio-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-ingress
+  namespace: default
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: minio.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio-service
+                port:
+                  number: 9000
+    - host: minio-console.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio-service
+                port:
+                  number: 43529
+  tls:
+    - hosts:
+        - minio.local
+      secretName: minio-tls
+    - hosts:
+        - minio-console.local
+      secretName: minio-console-tls 
