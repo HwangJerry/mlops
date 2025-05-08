@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 class MinioS3Client:
     def __init__(
         self,
-        # endpoint_url: str = "http://localhost:30090", # for local
-        endpoint_url: str = "http://minio-service:9000",
+        # endpoint_url: str = "http://localhost:30090", # local port for local
+        endpoint_url: str = "http://minio-service:9000", # cluster port for kubernetes
         access_key: str = "console",
         secret_key: str = "console123",
         bucket_name: str = "mlops",
