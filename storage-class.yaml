@@ -4,3 +4,17 @@ metadata:
   name: local-storage
 provisioner: kubernetes.io/no-provisioner
 volumeBindingMode: WaitForFirstConsumer
+
+# StorageClass: Kubernetes의 스토리지 관리 리소스
+# - 동적 프로비저닝 관련:
+#   현재 설정에서는 provisioner: kubernetes.io/no-provisioner로 되어있는데, 이는 수동으로 PV를 생성해야 함을 의미합니다.
+#   로컬 개발 환경에서 사용하는 설정으로, 자동으로 스토리지를 생성하지 않습니다. 따라서 PV를 별도로 생성해 두었습니다.
+#
+# - 볼륨 바인딩 모드:
+#   volumeBindingMode: WaitForFirstConsumer는 매우 중요한 설정입니다.
+#   파드가 실제로 스케줄링될 때까지 PV와 PVC의 바인딩을 지연시킵니다.
+#   이는 파드가 실행될 노드가 결정된 후에 스토리지 바인딩이 일어나도록 하여, 더 효율적인 스케줄링을 가능하게 합니다.
+#
+# - 스토리지 클래스 식별:
+#   name: local-storage로 정의되어 있어서, PV나 PVC에서 이 이름으로 참조할 수 있습니다.
+#   실제로 minio.yaml의 PV와 PVC에서 이 StorageClass를 참조하고 있습니다:
